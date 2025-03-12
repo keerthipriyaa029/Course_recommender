@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}CourseHub - Choose Your Skills{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">Choose Your Skills</h1>
+                <p class="lead subtitle">Select the skills you want to learn or improve</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('skill_selection') }}" id="skillForm">
+                {% if selected_domain != "No Preference" %}
+                    <div class="skill-section mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="domain-icon me-2 {{ domain_icons[selected_domain] }}"></i>
+                            <h2 class="h3 mb-0">{{ selected_domain }} Skills</h2>
+                        </div>
+                        <div class="skill-grid">
+                            {% for skill in skills %}
+                            <div class="skill-item">
+                                <input type="checkbox" class="btn-check" name="skills" id="skill-{{ loop.index }}" value="{{ skill }}" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="skill-{{ loop.index }}">
+                                    {{ skill }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    {% for domain, domain_skills in all_skills.items() %}
+                    <div class="skill-section mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="domain-icon me-2 {{ domain_icons[domain] }}"></i>
+                            <h2 class="h3 mb-0">{{ domain }} Skills</h2>
+                        </div>
+                        <div class="skill-grid">
+                            {% for skill in domain_skills %}
+                            <div class="skill-item">
+                                <input type="checkbox" class="btn-check" name="skills" id="skill-{{ domain|replace(' ', '-') }}-{{ loop.index }}" value="{{ skill }}" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="skill-{{ domain|replace(' ', '-') }}-{{ loop.index }}">
+                                    {{ skill }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Custom Skills Section -->
+                <div class="custom-skills-section mt-4">
+                    <h3 class="h4 mb-3">Add Custom Skills</h3>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="customSkillInput" placeholder="Enter a custom skill">
+                        <button class="btn btn-primary" type="button" id="addCustomSkill">+ Add</button>
+                    </div>
+                    <div id="customSkillsContainer" class="skill-grid">
+                        <!-- Custom skills will be added here dynamically -->
+                    </div>
+                </div>
+
+                <div class="navigation-buttons mt-5 d-flex justify-content-between">
+                    <a href="{{ url_for('domain_selection') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Domains
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        Continue to Recommendations<i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
+
+.display-4 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #1a237e;
+    font-size: 2.8rem;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-family: 'Poppins', sans-serif;
+    color: #1a237e;
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin-bottom: 2rem;
+    letter-spacing: -0.2px;
+}
+
+.skill-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.domain-icon {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+.skill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.skill-item .btn {
+    width: 100%;
+    text-align: left;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    white-space: normal;
+    height: auto;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+}
+
+.btn-check:checked + .btn-outline-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.custom-skills-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.navigation-buttons .btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+}
+
+/* Animation for adding custom skills */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.skill-item {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .skill-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+.alert-danger {
+    background-color: #fee;
+    border-color: #fcc;
+    color: #c00;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-danger i {
+    font-size: 1.2rem;
+}
+
+button[type="submit"]:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.normalized-hint {
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-left: 8px;
+    font-style: italic;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-warning i {
+    font-size: 1.2rem;
+    color: #997404;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const customSkillInput = document.getElementById('customSkillInput');
+    const addCustomSkillBtn = document.getElementById('addCustomSkill');
+    const customSkillsContainer = document.getElementById('customSkillsContainer');
+    const skillForm = document.getElementById('skillForm');
+    let customSkillCount = 0;
+
+    // Common skill variations and corrections
+    const skillVariations = {
+        'python': ['pyhton', 'pythn', 'py'],
+        'javascript': ['js', 'javascrpt', 'javscript'],
+        'machine learning': ['ml', 'machine learing', 'machinelearning'],
+        'artificial intelligence': ['ai', 'artifical intelligence', 'artificial inteligence'],
+        'deep learning': ['dl', 'deep learing', 'deeplearning'],
+        'data science': ['ds', 'datascience', 'data sciense'],
+        'natural language processing': ['nlp', 'natural lang processing'],
+        'computer vision': ['cv', 'computervision'],
+        'statistics': ['stats', 'stat', 'statistical'],
+        'visualization': ['visualisation', 'viz', 'data viz'],
+        'database': ['db', 'databases', 'databse'],
+        'sql': ['mysql', 'postgresql', 'sqlite'],
+        'analysis': ['analytics', 'analyse', 'analyzing'],
+        'programming': ['coding', 'developement', 'development'],
+        'algorithms': ['algo', 'algorithims', 'algorythms']
+    };
+
+    function normalizeSkill(skill) {
+        // Convert to lowercase and trim
+        const normalizedSkill = skill.toLowerCase().trim();
+        
+        // Check for exact matches in variations
+        for (const [standard, variations] of Object.entries(skillVariations)) {
+            if (variations.includes(normalizedSkill)) {
+                return standard;
+            }
+        }
+
+        // Check for partial matches (typo handling)
+        for (const [standard, variations] of Object.entries(skillVariations)) {
+            if (standard.includes(normalizedSkill) || normalizedSkill.includes(standard)) {
+                return standard;
+            }
+            // Check variations for partial matches
+            for (const variation of variations) {
+                if (calculateSimilarity(normalizedSkill, variation) > 0.8) {
+                    return standard;
+                }
+            }
+        }
+
+        return skill.trim(); // Return original if no matches
+    }
+
+    function calculateSimilarity(str1, str2) {
+        // Simple Levenshtein distance implementation
+        const track = Array(str2.length + 1).fill(null).map(() =>
+            Array(str1.length + 1).fill(null));
+        
+        for(let i = 0; i <= str1.length; i++) track[0][i] = i;
+        for(let j = 0; j <= str2.length; j++) track[j][0] = j;
+
+        for(let j = 1; j <= str2.length; j++) {
+            for(let i = 1; i <= str1.length; i++) {
+                const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+                track[j][i] = Math.min(
+                    track[j][i - 1] + 1,
+                    track[j - 1][i] + 1,
+                    track[j - 1][i - 1] + indicator
+                );
+            }
+        }
+
+        const maxLength = Math.max(str1.length, str2.length);
+        return 1 - (track[str2.length][str1.length] / maxLength);
+    }
+
+    function addCustomSkill(skillName) {
+        if (!skillName.trim()) return;
+        
+        // Normalize the skill name
+        const normalizedSkill = normalizeSkill(skillName);
+        
+        // Check if skill already exists
+        const existingSkills = Array.from(document.querySelectorAll('input[name="skills"]'))
+            .map(input => input.value.toLowerCase());
+        
+        if (existingSkills.includes(normalizedSkill.toLowerCase())) {
+            showWarning(`Skill "${normalizedSkill}" already exists`);
+            return;
+        }
+        
+        customSkillCount++;
+        const skillId = `custom-skill-${customSkillCount}`;
+        
+        const skillDiv = document.createElement('div');
+        skillDiv.className = 'skill-item';
+        skillDiv.innerHTML = `
+            <input type="checkbox" class="btn-check" name="skills" id="${skillId}" value="${normalizedSkill}" checked autocomplete="off">
+            <label class="btn btn-outline-primary" for="${skillId}">
+                ${normalizedSkill}
+                ${normalizedSkill !== skillName.trim() ? 
+                    `<small class="normalized-hint">(normalized from: ${skillName.trim()})</small>` : 
+                    ''}
+            </label>
+        `;
+        
+        customSkillsContainer.appendChild(skillDiv);
+        customSkillInput.value = '';
+        validateForm();
+    }
+
+    function showWarning(message) {
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'alert alert-warning alert-dismissible fade show mt-3';
+        warningDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        customSkillsContainer.insertBefore(warningDiv, customSkillsContainer.firstChild);
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            warningDiv.remove();
+        }, 3000);
+    }
+
+    function showError(message) {
+        // Remove any existing error message
+        const existingError = document.querySelector('.alert-danger');
+        if (existingError) {
+            existingError.remove();
+        }
+
+        // Create and show new error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mt-3';
+        errorDiv.role = 'alert';
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        skillForm.insertBefore(errorDiv, skillForm.firstChild);
+    }
+
+    function validateForm() {
+        // Remove any existing error message
+        const existingError = document.querySelector('.alert-danger');
+        if (existingError) {
+            existingError.remove();
+        }
+
+        // Check if any predefined skills are selected
+        const selectedSkills = document.querySelectorAll('input[name="skills"]:checked');
+        
+        // Enable/disable submit button based on validation
+        const submitButton = skillForm.querySelector('button[type="submit"]');
+        if (selectedSkills.length === 0) {
+            submitButton.disabled = true;
+            showError('Please select at least one skill or add a custom skill');
+            return false;
+        } else {
+            submitButton.disabled = false;
+            return true;
+        }
+    }
+
+    // Add event listeners
+    addCustomSkillBtn.addEventListener('click', () => {
+        addCustomSkill(customSkillInput.value);
+    });
+
+    customSkillInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addCustomSkill(customSkillInput.value);
+        }
+    });
+
+    // Add event listener for skill checkbox changes
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[name="skills"]')) {
+            validateForm();
+        }
+    });
+
+    // Add form submit validation
+    skillForm.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+
+    // Initial validation
+    validateForm();
+});
+</script>
+{% endblock %} 

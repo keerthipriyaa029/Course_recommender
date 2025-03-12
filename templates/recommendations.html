@@ -1,0 +1,1557 @@
+{% extends "base.html" %}
+
+{% block title %}Course Recommendations{% endblock %}
+
+{% block content %}
+<style>
+/* Navigation bar styles */
+.nav-tabs-container {
+    background-color: #2c3e50;
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-tabs {
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-tabs .nav-left {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.nav-tabs .nav-item .nav-link {
+    color: #ecf0f1;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.nav-tabs .nav-item .nav-link:hover,
+.nav-tabs .nav-item .nav-link.active {
+    background-color: #34495e;
+    color: #fff;
+}
+
+.nav-tabs .nav-item .nav-link i {
+    margin-right: 0.5rem;
+}
+
+/* User dropdown styles */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-toggle {
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.user-dropdown-toggle i {
+    font-size: 1.2rem;
+}
+
+.user-dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    min-width: 200px;
+}
+
+.user-dropdown-menu.show {
+    display: block;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.user-dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+}
+
+.user-dropdown-divider {
+    height: 1px;
+    background-color: #dee2e6;
+    margin: 0.5rem 0;
+}
+
+.btn-like {
+    color: #dc3545;
+    background-color: #fff;
+    border-color: #dc3545;
+}
+
+.btn-like.active {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-enroll {
+    color: #198754;
+    background-color: #fff;
+    border-color: #198754;
+}
+
+.btn-enroll.active {
+    color: #fff;
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-completed {
+    color: #0d6efd;
+    background-color: #fff;
+    border-color: #0d6efd;
+}
+
+.btn-completed.active {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.interaction-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn:focus {
+    box-shadow: none;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+.search-container {
+    max-width: 600px;
+    margin: 2rem auto 3rem;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 3rem 0.75rem 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #0d6efd;
+}
+
+.search-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.section-heading {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-results-container {
+    display: none;
+    margin-bottom: 3rem;
+}
+
+.search-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.close-search {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.15s ease-in-out;
+}
+
+.close-search:hover {
+    color: #343a40;
+}
+
+.no-results {
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    color: #6c757d;
+}
+
+.sidebar {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.filter-dropdown {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.filter-dropdown:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.main-content {
+    padding-left: 20px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding-left: 0;
+        margin-top: 20px;
+    }
+}
+
+/* My Lists Styles */
+.my-lists-section {
+    margin-top: 30px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 20px;
+}
+
+.my-lists-section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.list-button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    transition: all 0.2s;
+}
+
+.list-button i {
+    margin-right: 8px;
+}
+
+.list-button.favorites {
+    background-color: #fff;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.list-button.favorites:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.list-button.enrolled {
+    background-color: #fff;
+    color: #198754;
+    border: 1px solid #198754;
+}
+
+.list-button.enrolled:hover {
+    background-color: #198754;
+    color: #fff;
+}
+
+.list-button.completed {
+    background-color: #fff;
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+}
+
+.list-button.completed:hover {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+/* Popup Styles */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.popup-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.popup-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.popup-close:hover {
+    color: #343a40;
+}
+
+.course-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.course-list-item:last-child {
+    border-bottom: none;
+}
+
+.course-list-item a {
+    color: #212529;
+    text-decoration: none;
+    flex-grow: 1;
+}
+
+.course-list-item a:hover {
+    color: #0d6efd;
+}
+
+.course-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button i {
+    cursor: pointer;
+    pointer-events: auto;
+    font-size: 1.2rem;
+}
+
+.delete-button {
+    color: #dc3545;
+}
+
+.delete-button:hover, .delete-button i:hover {
+    color: #bb2d3b;
+}
+
+.complete-button {
+    color: #198754;
+}
+
+.complete-button:hover, .complete-button i:hover {
+    color: #146c43;
+}
+
+.enroll-from-favorites-button {
+    color: #0d6efd;
+}
+
+.enroll-from-favorites-button:hover, .enroll-from-favorites-button i:hover {
+    color: #0a58ca;
+}
+
+.course-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.course-indicator.trending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.course-meta {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+}
+
+.course-meta span {
+    margin-right: 1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.section-title {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+#load-more-btn {
+    transition: all 0.3s ease;
+}
+
+#load-more-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <h2 class="h5 mb-3">▼ Filters</h2>
+                <div class="filter-section">
+                    <h3>Platform</h3>
+                    <select class="filter-dropdown" id="platformFilter">
+                        <option value="all">All Platforms</option>
+                        <option value="Coursera">Coursera</option>
+                        <option value="Udemy">Udemy</option>
+                    </select>
+                </div>
+                <div class="filter-section">
+                    <h3>Duration</h3>
+                    <select class="filter-dropdown" id="durationFilter">
+                        <option value="all">All Durations</option>
+                        <option value="quick">Quick Learn (< 5 hours)</option>
+                        <option value="short">Short Course (5-20 hours)</option>
+                        <option value="full">Full Course (> 20 hours)</option>
+                    </select>
+                </div>
+
+                <!-- My Lists Section -->
+                <div class="my-lists-section">
+                    <h2>My Lists</h2>
+                    <button class="list-button favorites" id="favoritesButton">
+                        <i class="fas fa-heart"></i> Favorites
+                    </button>
+                    <button class="list-button enrolled" id="enrolledButton">
+                        <i class="fas fa-book-reader"></i> Enrolled
+                    </button>
+                    <button class="list-button completed" id="completedButton">
+                        <i class="fas fa-check-circle"></i> Completed
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Windows -->
+        <div class="popup-overlay" id="favoritesPopup">
+            <div class="popup-window">
+                <div class="popup-header">
+                    <h3><i class="fas fa-heart"></i> Favorite Courses</h3>
+                    <button class="popup-close" data-popup="favoritesPopup">&times;</button>
+                </div>
+                <div id="favoritesList"></div>
+            </div>
+        </div>
+
+        <div class="popup-overlay" id="enrolledPopup">
+            <div class="popup-window">
+                <div class="popup-header">
+                    <h3><i class="fas fa-book-reader"></i> Enrolled Courses</h3>
+                    <button class="popup-close" data-popup="enrolledPopup">&times;</button>
+                </div>
+                <div id="enrolledList"></div>
+            </div>
+        </div>
+
+        <div class="popup-overlay" id="completedPopup">
+            <div class="popup-window">
+                <div class="popup-header">
+                    <h3><i class="fas fa-check-circle"></i> Completed Courses</h3>
+                    <button class="popup-close" data-popup="completedPopup">&times;</button>
+                </div>
+                <div id="completedList"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 main-content">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search for courses..." id="courseSearch">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+
+            <div id="searchResults" class="search-results-container">
+                <div class="search-results-header">
+                    <h2 class="section-heading">
+                        <i class="fas fa-magnifying-glass"></i> Search Results
+                    </h2>
+                    <button class="close-search" id="closeSearch">&times;</button>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="searchResultsGrid">
+                </div>
+            </div>
+
+            <!-- Handpicked Recommendations Section -->
+            <section id="handpicked-section" class="mb-5">
+                <h2 class="section-heading">
+                    <i class="fas fa-star"></i> Handpicked Recommendations for You
+                </h2>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="recommendationsGrid">
+                    {% for course in recommendations %}
+                    <div class="col course-card" 
+                         data-platform="{{ course['platform'] }}"
+                         data-duration="{{ course['duration_in_hours']|default(0) }}">
+                        <div class="card h-100 shadow-sm">
+                            <img src="{{ course['Course Image'] }}" class="card-img-top" alt="{{ course['Course Name'] }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2">{{ course['Course Name'] }}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>
+                                        Duration: {{ course['Duration'] }}<br>
+                                        Platform: {{ course['platform'] }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="interaction-container">
+                                        <button class="btn btn-sm btn-like {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'like')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="like">
+                                            Like
+                                        </button>
+                                        <button class="btn btn-sm btn-enroll {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'enroll')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="enroll">
+                                            Enroll
+                                        </button>
+                                        <button class="btn btn-sm btn-completed {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'completed')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="completed">
+                                            Complete
+                                        </button>
+                                    </div>
+                                    <a href="{{ course['Course Link'] }}" target="_blank" class="btn btn-sm btn-primary w-100">
+                                        View Course
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info" role="alert">
+                            No recommendations available yet. Please make sure you've selected your domain and skills.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if has_more %}
+                <div class="text-center mt-4">
+                    <button id="load-more-btn" class="btn btn-primary" data-offset="10">
+                        Load More Recommendations
+                    </button>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Similar Courses Section -->
+            <section id="similar-section" class="mb-5">
+                <h2 class="section-heading">
+                    <i class="fas fa-thumbs-up"></i> Similar to What You Liked
+                </h2>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="similarCoursesGrid">
+                    {% for course in similar_recommendations %}
+                    <div class="col course-card">
+                        <div class="card h-100 shadow-sm">
+                            {% if course.recommended_because %}
+                            <div class="course-indicator">{{ course.recommended_because }}</div>
+                            {% endif %}
+                            <img src="{{ course['Course Image'] }}" class="card-img-top" alt="{{ course['Course Name'] }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2">{{ course['Course Name'] }}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>
+                                        Duration: {{ course['Duration'] }}<br>
+                                        Platform: {{ course['platform'] }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="interaction-container">
+                                        <button class="btn btn-sm btn-like {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'like')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="like">
+                                            Like
+                                        </button>
+                                        <button class="btn btn-sm btn-enroll {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'enroll')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="enroll">
+                                            Enroll
+                                        </button>
+                                        <button class="btn btn-sm btn-completed {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'completed')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="completed">
+                                            Complete
+                                        </button>
+                                    </div>
+                                    <a href="{{ course['Course Link'] }}" target="_blank" class="btn btn-sm btn-primary w-100">
+                                        View Course
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Trending Courses Section -->
+            <section id="trending-section" class="mb-5">
+                <h2 class="section-heading">
+                    <i class="fas fa-fire"></i> Trending Among Users
+                </h2>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="trendingCoursesGrid">
+                    {% for course in trending_recommendations %}
+                    <div class="col course-card">
+                        <div class="card h-100 shadow-sm">
+                            {% if course.trending_indicator %}
+                            <div class="course-indicator trending">{{ course.trending_indicator }}</div>
+                            {% endif %}
+                            <img src="{{ course['Course Image'] }}" class="card-img-top" alt="{{ course['Course Name'] }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2">{{ course['Course Name'] }}</h5>
+                                <p class="card-text text-muted mb-2">
+                                    <small>
+                                        Duration: {{ course['Duration'] }}<br>
+                                        Platform: {{ course['platform'] }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="interaction-container">
+                                        <button class="btn btn-sm btn-like {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'like')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="like">
+                                            Like
+                                        </button>
+                                        <button class="btn btn-sm btn-enroll {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'enroll')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="enroll">
+                                            Enroll
+                                        </button>
+                                        <button class="btn btn-sm btn-completed {% if course['Course ID'] in interactions|map(attribute='course_id')|selectattr('interaction_type', 'equalto', 'completed')|list %}active{% endif %}"
+                                                data-course-id="{{ course['Course ID'] }}"
+                                                data-course-name="{{ course['Course Name'] }}"
+                                                data-platform="{{ course['platform'] }}"
+                                                data-course-link="{{ course['Course Link'] }}"
+                                                data-interaction-type="completed">
+                                            Complete
+                                        </button>
+                                    </div>
+                                    <a href="{{ course['Course Link'] }}" target="_blank" class="btn btn-sm btn-primary w-100">
+                                        View Course
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const interactionButtons = document.querySelectorAll('.btn-like, .btn-enroll, .btn-completed');
+    
+    interactionButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const courseId = this.dataset.courseId;
+            const courseName = this.dataset.courseName;
+            const platform = this.dataset.platform;
+            const courseLink = this.dataset.courseLink;
+            const interactionType = this.dataset.interactionType;
+            const isActive = this.classList.contains('active');
+            
+            try {
+                if (isActive) {
+                    // Remove interaction
+                    const response = await fetch(`/api/interactions/${courseId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        this.classList.remove('active');
+                        showAlert('success', `Removed ${interactionType} status`);
+                        
+                        // If this was a like button, update similar courses section
+                        if (interactionType === 'like') {
+                            const similarSection = document.getElementById('similar-section');
+                            similarSection.style.display = 'none';
+                            document.getElementById('similarCoursesGrid').innerHTML = '';
+                        }
+                    }
+                } else {
+                    // Add interaction
+                    const response = await fetch('/api/interactions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            course_id: courseId,
+                            course_name: courseName,
+                            platform: platform,
+                            course_link: courseLink,
+                            interaction_type: interactionType
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        this.classList.add('active');
+                        showAlert('success', getSuccessMessage(interactionType));
+                        
+                        // If this was a like button, immediately fetch and show similar courses
+                        if (interactionType === 'like') {
+                            const similarResponse = await fetch(`/api/similar-courses/${courseId}`);
+                            if (similarResponse.ok) {
+                                const data = await similarResponse.json();
+                                if (data.courses && data.courses.length > 0) {
+                                    const similarSection = document.getElementById('similar-section');
+                                    const similarGrid = document.getElementById('similarCoursesGrid');
+                                    
+                                    // Clear existing courses
+                                    similarGrid.innerHTML = '';
+                                    
+                                    // Add new similar courses
+                                    data.courses.forEach(course => {
+                                        const courseCard = document.createElement('div');
+                                        courseCard.className = 'col course-card';
+                                        courseCard.innerHTML = generateCourseCard(course);
+                                        similarGrid.appendChild(courseCard);
+                                    });
+                                    
+                                    // Show the section and attach interaction listeners
+                                    similarSection.style.display = 'block';
+                                    attachInteractionListeners(similarGrid);
+                                    
+                                    // Smooth scroll to similar courses section
+                                    similarSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('danger', error.message);
+            }
+        });
+    });
+    
+    function showAlert(type, message) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+    
+    function getSuccessMessage(interactionType) {
+        switch (interactionType) {
+            case 'like':
+                return 'Course liked!';
+            case 'enroll':
+                return 'Enrolled in course!';
+            case 'completed':
+                return 'Course marked as completed!';
+            default:
+                return 'Interaction saved!';
+        }
+    }
+
+    // Filter functionality
+    const platformFilter = document.getElementById('platformFilter');
+    const durationFilter = document.getElementById('durationFilter');
+
+    async function applyFilters() {
+        const platform = platformFilter.value;
+        const duration = durationFilter.value;
+        
+        try {
+            // Get current grid of courses
+            const grid = document.getElementById('recommendationsGrid');
+            const cards = grid.querySelectorAll('.course-card');
+            
+            cards.forEach(card => {
+                const cardPlatform = card.dataset.platform;
+                const cardDuration = parseFloat(card.dataset.duration);
+                
+                let showCard = true;
+                
+                // Apply platform filter
+                if (platform !== 'all' && cardPlatform !== platform) {
+                    showCard = false;
+                }
+                
+                // Apply duration filter
+                if (duration !== 'all') {
+                    if (duration === 'quick' && cardDuration >= 5) showCard = false;
+                    if (duration === 'short' && (cardDuration < 5 || cardDuration > 20)) showCard = false;
+                    if (duration === 'full' && cardDuration <= 20) showCard = false;
+                }
+                
+                card.style.display = showCard ? '' : 'none';
+            });
+        } catch (error) {
+            console.error('Error applying filters:', error);
+            showAlert('danger', 'Failed to apply filters');
+        }
+    }
+
+    platformFilter.addEventListener('change', applyFilters);
+    durationFilter.addEventListener('change', applyFilters);
+
+    // Optimize search functionality
+    const searchInput = document.getElementById('courseSearch');
+    const searchResults = document.getElementById('searchResults');
+    const searchResultsGrid = document.getElementById('searchResultsGrid');
+    const closeSearch = document.getElementById('closeSearch');
+    let searchTimeout;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length >= 2) {
+            // Show loading indicator
+            searchResultsGrid.innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            searchResults.style.display = 'block';
+            
+            // Debounce the search
+            searchTimeout = setTimeout(() => {
+                fetchSearchResults(query);
+            }, 300);
+        } else {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    async function fetchSearchResults(query) {
+        try {
+            const platform = platformFilter.value;
+            const duration = durationFilter.value;
+            
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&platform=${platform}&duration=${duration}`);
+            if (!response.ok) throw new Error('Search failed');
+            
+            const data = await response.json();
+            
+            // Cache the results
+            window.interactions = data.interactions;
+            
+            // Clear and update results
+            searchResultsGrid.innerHTML = '';
+            
+            if (!data.courses || data.courses.length === 0) {
+                searchResultsGrid.innerHTML = `
+                    <div class="col-12">
+                        <div class="no-results">
+                            No courses found matching "${query}" with current filters.<br>
+                            Try adjusting your filters or search term.
+                        </div>
+                    </div>`;
+            } else {
+                // Update header with count
+                const searchHeader = document.querySelector('.search-results-header h2');
+                searchHeader.innerHTML = `
+                    <i class="fas fa-magnifying-glass"></i> 
+                    Search Results (${data.total_results} found)
+                `;
+                
+                // Batch DOM updates
+                const fragment = document.createDocumentFragment();
+                
+                data.courses.forEach(course => {
+                    const courseCard = document.createElement('div');
+                    courseCard.className = 'col';
+                    courseCard.innerHTML = generateCourseCard(course);
+                    fragment.appendChild(courseCard);
+                });
+                
+                searchResultsGrid.appendChild(fragment);
+                attachInteractionListeners(searchResultsGrid);
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            searchResultsGrid.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        Failed to search courses. Please try again.
+                    </div>
+                </div>`;
+        }
+    }
+
+    // Update the course card generator to show full title
+    function generateCourseCard(course) {
+        const isLiked = window.interactions && window.interactions.some(i => i.course_id === course['Course ID'] && i.interaction_type === 'like');
+        const isEnrolled = window.interactions && window.interactions.some(i => i.course_id === course['Course ID'] && i.interaction_type === 'enroll');
+        const isCompleted = window.interactions && window.interactions.some(i => i.course_id === course['Course ID'] && i.interaction_type === 'completed');
+
+        const descriptionSnippet = course['Description_Snippet'] ? `
+            <p class="card-text text-muted small mt-2">
+                <strong>Matched in description:</strong><br>
+                ${course['Description_Snippet']}
+            </p>
+        ` : '';
+
+        return `
+            <div class="col course-card" data-platform="${course['platform']}" data-duration="${course['duration_in_hours'] || 0}">
+                <div class="card h-100 shadow-sm">
+                    <img src="${course['Course Image']}" class="card-img-top" alt="${course['Course Name']}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">${course['Course Name']}</h5>
+                        <p class="card-text text-muted mb-2">
+                            <small>
+                                Duration: ${course['Duration']}<br>
+                                Platform: ${course['platform']}
+                            </small>
+                        </p>
+                        ${descriptionSnippet}
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex flex-column gap-2">
+                            <div class="interaction-container">
+                                <button class="btn btn-sm btn-like ${isLiked ? 'active' : ''}"
+                                        data-course-id="${course['Course ID']}"
+                                        data-course-name="${course['Course Name']}"
+                                        data-platform="${course['platform']}"
+                                        data-course-link="${course['Course Link']}"
+                                        data-interaction-type="like">
+                                    Like
+                                </button>
+                                <button class="btn btn-sm btn-enroll ${isEnrolled ? 'active' : ''}"
+                                        data-course-id="${course['Course ID']}"
+                                        data-course-name="${course['Course Name']}"
+                                        data-platform="${course['platform']}"
+                                        data-course-link="${course['Course Link']}"
+                                        data-interaction-type="enroll">
+                                    Enroll
+                                </button>
+                                <button class="btn btn-sm btn-completed ${isCompleted ? 'active' : ''}"
+                                        data-course-id="${course['Course ID']}"
+                                        data-course-name="${course['Course Name']}"
+                                        data-platform="${course['platform']}"
+                                        data-course-link="${course['Course Link']}"
+                                        data-interaction-type="completed">
+                                    Complete
+                                </button>
+                            </div>
+                            <a href="${course['Course Link']}" target="_blank" class="btn btn-sm btn-primary w-100">
+                                View Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // Function to attach interaction listeners to buttons
+    function attachInteractionListeners(container) {
+        const buttons = container.querySelectorAll('.btn-like, .btn-enroll, .btn-completed');
+        buttons.forEach(button => {
+            button.addEventListener('click', async function() {
+                const courseId = this.dataset.courseId;
+                const courseName = this.dataset.courseName;
+                const platform = this.dataset.platform;
+                const courseLink = this.dataset.courseLink;
+                const interactionType = this.dataset.interactionType;
+                const isActive = this.classList.contains('active');
+                
+                try {
+                    if (isActive) {
+                        const response = await fetch(`/api/interactions/${courseId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            this.classList.remove('active');
+                            showAlert('success', `Removed ${interactionType} status`);
+                            
+                            // If this was a like button, update similar courses section
+                            if (interactionType === 'like') {
+                                const similarSection = document.getElementById('similar-section');
+                                similarSection.style.display = 'none';
+                                document.getElementById('similarCoursesGrid').innerHTML = '';
+                            }
+                        }
+                    } else {
+                        const response = await fetch('/api/interactions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                course_id: courseId,
+                                course_name: courseName,
+                                platform: platform,
+                                course_link: courseLink,
+                                interaction_type: interactionType
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            this.classList.add('active');
+                            showAlert('success', getSuccessMessage(interactionType));
+                            
+                            // If this was a like button, immediately fetch and show similar courses
+                            if (interactionType === 'like') {
+                                const similarResponse = await fetch(`/api/similar-courses/${courseId}`);
+                                if (similarResponse.ok) {
+                                    const data = await similarResponse.json();
+                                    if (data.courses && data.courses.length > 0) {
+                                        const similarSection = document.getElementById('similar-section');
+                                        const similarGrid = document.getElementById('similarCoursesGrid');
+                                        
+                                        // Clear existing courses
+                                        similarGrid.innerHTML = '';
+                                        
+                                        // Add new similar courses
+                                        data.courses.forEach(course => {
+                                            const courseCard = document.createElement('div');
+                                            courseCard.className = 'col course-card';
+                                            courseCard.innerHTML = generateCourseCard(course);
+                                            similarGrid.appendChild(courseCard);
+                                        });
+                                        
+                                        // Show the section and attach interaction listeners
+                                        similarSection.style.display = 'block';
+                                        attachInteractionListeners(similarGrid);
+                                        
+                                        // Smooth scroll to similar courses section
+                                        similarSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('danger', error.message);
+                }
+            });
+        });
+    }
+
+    // My Lists functionality
+    const favoritesButton = document.getElementById('favoritesButton');
+    const enrolledButton = document.getElementById('enrolledButton');
+    const completedButton = document.getElementById('completedButton');
+    const popupOverlays = document.querySelectorAll('.popup-overlay');
+    const closeButtons = document.querySelectorAll('.popup-close');
+
+    // Function to fetch and display user's course lists
+    async function fetchUserLists(interactionType) {
+        try {
+            const response = await fetch(`/api/interactions?type=${interactionType}`);
+            if (!response.ok) throw new Error('Failed to fetch courses');
+            
+            const interactions = await response.json();
+            return interactions;
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('danger', 'Failed to fetch course list');
+            return [];
+        }
+    }
+
+    // Function to show popup with updated event handling
+    async function showPopup(popupId, interactionType) {
+        const popup = document.getElementById(popupId);
+        popup.style.display = 'block';
+        
+        try {
+        const interactions = await fetchUserLists(interactionType);
+            const targetList = document.getElementById(
+                interactionType === 'like' ? 'favoritesList' :
+                interactionType === 'enroll' ? 'enrolledList' :
+                'completedList'
+            );
+            
+            if (targetList) {
+                // Clear existing content and event listeners
+                targetList.innerHTML = '';
+                targetList.removeEventListener('click', handleListClick);
+                
+                if (interactions.length > 0) {
+                    // Add new items
+                    interactions.forEach(interaction => {
+                        const itemHtml = generateListItem(interaction, interactionType === 'enroll');
+                        targetList.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                    
+                    // Add click event listener for delegation
+                    targetList.addEventListener('click', handleListClick);
+                    
+                    // Make sure icons are clickable
+                    targetList.querySelectorAll('.action-button i').forEach(icon => {
+                        icon.style.pointerEvents = 'auto';
+                        icon.style.cursor = 'pointer';
+                    });
+                    } else {
+                    targetList.innerHTML = '<div class="no-results">No courses in this list</div>';
+                }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+            showAlert('danger', 'Failed to load courses');
+        }
+    }
+
+    // Function to handle all list clicks through delegation
+    function handleListClick(event) {
+        const target = event.target;
+        const actionButton = target.closest('.action-button');
+        
+        if (!actionButton) return;
+        
+        // Prevent default button behavior
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const action = actionButton.dataset.action;
+        console.log('Action clicked:', action); // Debug log
+        
+        switch(action) {
+            case 'enroll':
+                handleEnrollFromFavorites(actionButton);
+                break;
+            case 'complete':
+                handleCompleteButton(actionButton);
+                break;
+            case 'delete':
+                handleDeleteButton(actionButton);
+                break;
+        }
+    }
+
+    // Handler function for enroll from favorites
+    async function handleEnrollFromFavorites(button) {
+        const courseItem = button.closest('.course-list-item');
+                    const courseId = courseItem.dataset.courseId;
+        const courseName = courseItem.dataset.courseName;
+        const platform = courseItem.dataset.platform;
+        const courseLink = courseItem.dataset.courseLink;
+        
+        try {
+            const response = await fetch('/api/interactions/move-to-enrolled', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    course_name: courseName,
+                    platform: platform,
+                    course_link: courseLink
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                updateLists(data);
+                showAlert('success', 'Course moved to enrolled list');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('danger', 'Failed to move course to enrolled list');
+        }
+    }
+
+    // Handler function for complete button
+    async function handleCompleteButton(button) {
+        const courseItem = button.closest('.course-list-item');
+        const courseId = courseItem.dataset.courseId;
+        const courseName = courseItem.dataset.courseName;
+        const platform = courseItem.dataset.platform;
+        const courseLink = courseItem.dataset.courseLink;
+        
+        try {
+            const response = await fetch('/api/interactions/move-to-completed', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                course_id: courseId,
+                    course_name: courseName,
+                    platform: platform,
+                    course_link: courseLink
+                            })
+                        });
+                        
+                        if (response.ok) {
+                const data = await response.json();
+                updateLists(data);
+                            showAlert('success', 'Course marked as completed');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('danger', 'Failed to mark course as completed');
+        }
+    }
+
+    // Handler function for delete button
+    async function handleDeleteButton(button) {
+        const courseItem = button.closest('.course-list-item');
+        const courseId = courseItem.dataset.courseId;
+        
+        try {
+            const response = await fetch(`/api/interactions/${courseId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                courseItem.remove();
+                showAlert('success', 'Course removed from list');
+                            
+                            // Check if list is empty
+                const list = courseItem.parentElement;
+                if (list && list.children.length === 0) {
+                    list.innerHTML = '<div class="no-results">No courses in this list</div>';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+            showAlert('danger', 'Failed to remove course');
+        }
+    }
+
+    // Helper function to update lists after actions
+    function updateLists(data) {
+        if (data.favorites) {
+            const favoritesList = document.getElementById('favoritesList');
+            updateListContent(favoritesList, data.favorites, false);
+        }
+        if (data.enrolled) {
+            const enrolledList = document.getElementById('enrolledList');
+            updateListContent(enrolledList, data.enrolled, true);
+        }
+        if (data.completed) {
+            const completedList = document.getElementById('completedList');
+            updateListContent(completedList, data.completed, false);
+        }
+    }
+
+    // Helper function to update list content
+    function updateListContent(listElement, items, showCompleteButton) {
+        if (!listElement) return;
+        
+        if (items.length > 0) {
+            listElement.innerHTML = '';
+            items.forEach(interaction => {
+                const itemHtml = generateListItem(interaction, showCompleteButton);
+                listElement.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        } else {
+            listElement.innerHTML = '<div class="no-results">No courses in this list</div>';
+        }
+    }
+
+    // Function to generate list item HTML
+    function generateListItem(interaction, showCompleteButton = false) {
+        return `
+            <div class="course-list-item" 
+                 data-course-id="${interaction.course_id}" 
+                 data-platform="${interaction.platform}" 
+                 data-course-name="${interaction.course_name}" 
+                 data-course-link="${interaction.course_link}"
+                 data-interaction-type="${interaction.interaction_type}">
+                <a href="${interaction.course_link}" target="_blank">${interaction.course_name}</a>
+                <div class="course-actions">
+                    ${showCompleteButton ? `
+                        <button type="button" class="action-button complete-button" 
+                                data-course-id="${interaction.course_id}"
+                                data-platform="${interaction.platform}" 
+                                data-course-name="${interaction.course_name}" 
+                                data-course-link="${interaction.course_link}"
+                                data-action="complete"
+                                title="Mark as Completed">
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                    ` : interaction.interaction_type === 'like' ? `
+                        <button type="button" class="action-button enroll-from-favorites-button"
+                                data-course-id="${interaction.course_id}"
+                                data-platform="${interaction.platform}" 
+                                data-course-name="${interaction.course_name}" 
+                                data-course-link="${interaction.course_link}"
+                                data-action="enroll"
+                                title="Enroll in Course">
+                            <i class="fas fa-graduation-cap"></i>
+                        </button>
+                    ` : ''}
+                    <button type="button" class="action-button delete-button"
+                            data-course-id="${interaction.course_id}"
+                            data-platform="${interaction.platform}" 
+                            data-course-name="${interaction.course_name}" 
+                            data-course-link="${interaction.course_link}"
+                            data-action="delete"
+                            title="Remove">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Event listeners for list buttons
+    favoritesButton.addEventListener('click', () => showPopup('favoritesPopup', 'like'));
+    enrolledButton.addEventListener('click', () => showPopup('enrolledPopup', 'enroll'));
+    completedButton.addEventListener('click', () => showPopup('completedPopup', 'completed'));
+
+    // Close popup when clicking close button or outside
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const popup = document.getElementById(this.dataset.popup);
+            popup.style.display = 'none';
+        });
+    });
+
+    popupOverlays.forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    });
+
+    // Load More functionality
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', async function() {
+            const offset = parseInt(this.dataset.offset);
+            const platform = platformFilter.value;
+            const duration = durationFilter.value;
+            
+            try {
+                const response = await fetch(`/api/recommendations/load-more?offset=${offset}&platform=${platform}&duration=${duration}`);
+                const data = await response.json();
+                
+                if (data.courses && data.courses.length > 0) {
+                    const container = document.getElementById('recommendationsGrid');
+                    data.courses.forEach(course => {
+                        const courseCard = document.createElement('div');
+                        courseCard.innerHTML = generateCourseCard(course);
+                        container.appendChild(courseCard.firstElementChild);
+                    });
+                    
+                    // Update offset for next load
+                    this.dataset.offset = offset + 10;
+                    
+                    // Hide button if no more courses or reached limit
+                    if (!data.has_more) {
+                        this.style.display = 'none';
+                    }
+                    
+                    // Attach interaction listeners to new cards
+                    attachInteractionListeners(container);
+                    
+                    // Update window.interactions with new interactions
+                    if (data.interactions) {
+                        window.interactions = [...window.interactions, ...data.interactions];
+                    }
+                } else {
+                    this.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading more courses:', error);
+                showAlert('danger', 'Failed to load more courses');
+            }
+        });
+    }
+
+    // Show/hide sections based on content
+    const similarSection = document.getElementById('similar-section');
+    const trendingSection = document.getElementById('trending-section');
+    
+    if (!document.querySelector('#similarCoursesGrid .course-card')) {
+        similarSection.style.display = 'none';
+    }
+    
+    if (!document.querySelector('#trendingCoursesGrid .course-card')) {
+        trendingSection.style.display = 'none';
+    }
+});
+
+function toggleUserDropdown() {
+    const dropdownMenu = document.getElementById('userDropdownMenu');
+    dropdownMenu.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function(event) {
+    if (!event.target.matches('.user-dropdown-toggle')) {
+        const dropdowns = document.getElementsByClassName('user-dropdown-menu');
+        for (const dropdown of dropdowns) {
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

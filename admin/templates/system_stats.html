@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}System Stats - Course Recommendation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        color: white;
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card .number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .stat-card .label {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+    
+    .interpretation {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .retention-table {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .retention-table th {
+        background-color: #f8f9fa;
+    }
+    
+    .retention-table td, .retention-table th {
+        padding: 15px;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">System Statistics</h1>
+    
+    <!-- Database Statistics -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);">
+                <div class="label">Total Users</div>
+                <div class="number">{{ total_users }}</div>
+                <div class="interpretation">
+                    Total number of registered users in the database
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
+                <div class="label">Total Interactions</div>
+                <div class="number">{{ total_interactions }}</div>
+                <div class="interpretation">
+                    Total number of user interactions recorded
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);">
+                <div class="label">Users with Preferences</div>
+                <div class="number">{{ total_preferences }}</div>
+                <div class="interpretation">
+                    Number of users who have set their preferences
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);">
+                <div class="label">New Users (24h)</div>
+                <div class="number">{{ new_users_24h }}</div>
+                <div class="interpretation">
+                    Number of new users registered in the last 24 hours
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                <div class="label">New Interactions (24h)</div>
+                <div class="number">{{ new_interactions_24h }}</div>
+                <div class="interpretation">
+                    Number of new interactions in the last 24 hours
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Retention -->
+    <div class="retention-table mt-4">
+        <h5 class="chart-title">User Retention Analysis</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Time Period</th>
+                        <th>Active Users</th>
+                        <th>Retention Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in retention_data %}
+                    <tr>
+                        <td>{{ data.period }}</td>
+                        <td>{{ data.active_users }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ data.retention_rate }};" 
+                                     aria-valuenow="{{ data.retention_rate|replace('%', '') }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ data.retention_rate }}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="interpretation">
+            <i class="fas fa-info-circle me-2"></i>
+            This table shows user retention over different time periods, helping track user engagement and platform stickiness.
+            A higher retention rate indicates better user engagement and satisfaction with the platform.
+        </div>
+    </div>
+</div>
+{% endblock %} 

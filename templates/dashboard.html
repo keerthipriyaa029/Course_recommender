@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Engagement Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="card-body text-center">
+                    <h5 class="metric-title">Liked Courses</h5>
+                    <h2 class="metric-value text-primary">{{ analytics.engagement_summary.liked_courses }}</h2>
+                    <i class="fas fa-heart metric-icon text-primary"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="card-body text-center">
+                    <h5 class="metric-title">Enrolled Courses</h5>
+                    <h2 class="metric-value text-success">{{ analytics.engagement_summary.enrolled_courses }}</h2>
+                    <i class="fas fa-graduation-cap metric-icon text-success"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="card-body text-center">
+                    <h5 class="metric-title">Completed Courses</h5>
+                    <h2 class="metric-value text-info">{{ analytics.engagement_summary.completed_courses }}</h2>
+                    <i class="fas fa-check-circle metric-icon text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Completion Analytics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="chart-card">
+                <div class="card-body">
+                    <h5 class="chart-title">Learning Progress</h5>
+                    <div class="chart-container">
+                        <canvas id="completionGauge"></canvas>
+                    </div>
+                    <div class="interpretation">
+                        <i class="fas fa-info-circle"></i>
+                        Shows your overall learning progress with completed, enrolled, and liked courses distribution. This helps track your journey from interest to completion.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Analytics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="chart-card">
+                <div class="card-body">
+                    <h5 class="chart-title">Top Skills</h5>
+                    <div class="chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                    <div class="interpretation">
+                        <i class="fas fa-info-circle"></i>
+                        Shows the key skills you're developing through your courses. Use this to ensure you're building a well-rounded skill set in your chosen domain.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Activity -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="chart-card">
+                <div class="card-body">
+                    <h5 class="chart-title">Monthly Learning Activity</h5>
+                    <div class="chart-container">
+                        <canvas id="monthlyActivityChart"></canvas>
+                    </div>
+                    <div class="interpretation">
+                        <i class="fas fa-info-circle"></i>
+                        Shows your monthly course completions and new enrollments. The comparison helps track your learning consistency and completion rate over time.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Dashboard Styles -->
+<style>
+.dashboard-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #f8f9fa;
+}
+
+.metric-card, .chart-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.metric-card:hover, .chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.metric-title, .chart-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+
+.metric-icon {
+    font-size: 2rem;
+    margin-top: 0.5rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    padding: 10px;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+</style>
+
+<!-- Dashboard Scripts -->
+<script>
+// Get analytics data from server-side template
+const analyticsData = JSON.parse('{{ analytics|tojson|safe }}');
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced color schemes for better distinction
+    const colors = {
+        progress: ['#2196F3', '#4CAF50', '#FFC107'],  // Blue, Green, Yellow for Learning Progress
+        skills: [
+            '#FF4D4D',  // Bright Red
+            '#4ECDC4',  // Turquoise
+            '#FFA726',  // Orange
+            '#45B7D1',  // Sky Blue
+            '#9B59B6'   // Purple
+        ],
+        activity: {
+            completions: '#00BCD4',  // Cyan for completions
+            enrollments: '#FF4081'   // Pink for enrollments
+        }
+    };
+    
+    // Learning Progress Chart (Doughnut)
+    new Chart(document.getElementById('completionGauge'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'In Progress', 'Planned'],
+            datasets: [{
+                data: [
+                    analyticsData.engagement_summary.completed_courses,
+                    analyticsData.engagement_summary.enrolled_courses,
+                    analyticsData.engagement_summary.liked_courses
+                ],
+                backgroundColor: colors.progress,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Top Skills Chart
+    new Chart(document.getElementById('skillsChart'), {
+        type: 'bar',
+        data: {
+            labels: analyticsData.learning_preferences.top_skills,
+            datasets: [{
+                axis: 'y',
+                label: 'Skills',
+                data: analyticsData.learning_preferences.top_skills.map(() => 1),
+                backgroundColor: colors.skills,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Monthly Activity Chart (Bar + Line)
+    new Chart(document.getElementById('monthlyActivityChart'), {
+        type: 'bar',
+        data: {
+            labels: analyticsData.interaction_trends.monthly_trends.months,
+            datasets: [
+                {
+                    label: 'Completions',
+                    type: 'bar',
+                    data: analyticsData.interaction_trends.monthly_trends.completions,
+                    backgroundColor: colors.activity.completions,
+                    borderRadius: 8,
+                    order: 2
+                },
+                {
+                    label: 'New Enrollments',
+                    type: 'line',
+                    data: analyticsData.interaction_trends.monthly_trends.enrollments,
+                    borderColor: colors.activity.enrollments,
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    order: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+
+// Function to refresh dashboard data
+async function refreshDashboard() {
+    try {
+        const response = await fetch('/api/dashboard/refresh');
+        const newAnalytics = await response.json();
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            console.error('Error refreshing dashboard:', newAnalytics.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+</script>
+{% endblock %} 

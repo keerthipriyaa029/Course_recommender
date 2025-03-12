@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}User Activity - Course Recommendation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        height: 100%;
+    }
+    
+    .stat-card .number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .stat-card .label {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+    
+    .interpretation {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .date-filter {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">User Activity Analysis</h1>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search User</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="userSearch" 
+                               placeholder="Enter username..." 
+                               list="userList">
+                        <datalist id="userList">
+                            {% for username in usernames %}
+                            <option value="{{ username }}">
+                            {% endfor %}
+                        </datalist>
+                        <button class="btn btn-primary" onclick="updateUserActivity()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ start_date }}" onchange="updateCharts()">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                           value="{{ end_date }}" onchange="updateCharts()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Card -->
+    <div class="card mb-4" id="userDetailsCard" style="display: none;">
+        <div class="card-body">
+            <h5 class="card-title mb-4">User Details</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="label">Enrolled Courses</div>
+                        <div class="number" id="enrolledCourses">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-success text-white">
+                        <div class="label">Liked Courses</div>
+                        <div class="number" id="likedCourses">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-info text-white">
+                        <div class="label">Last Login</div>
+                        <div class="number" id="lastLogin">-</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="label">Time Spent</div>
+                        <div class="number" id="timeSpent">0h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Statistics -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="label">Total Activities</div>
+                <div class="number">{{ total_activities }}</div>
+                <div class="interpretation">
+                    Total number of user interactions
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
+                <div class="label">Active Users</div>
+                <div class="number">{{ unique_users }}</div>
+                <div class="interpretation">
+                    Number of unique active users
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card" style="background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);">
+                <div class="label">Avg Activities/User</div>
+                <div class="number">{{ avg_activities_per_user }}</div>
+                <div class="interpretation">
+                    Average activities per user
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <!-- Activity Timeline Chart -->
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="chart-title">Daily Activity Timeline</h5>
+                <div id="timelineChart"></div>
+                <div class="interpretation">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This chart shows the daily activity pattern, helping identify peak usage times and trends.
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Activity Distribution -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="chart-title">Activity Distribution</h5>
+                <div id="activityDistChart"></div>
+                <div class="interpretation">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Distribution of different types of user activities.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Time of Day Activity -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="chart-title">Time of Day Activity</h5>
+                <div id="timeOfDayChart"></div>
+                <div class="interpretation">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Activity patterns throughout the day.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const activityData = JSON.parse('{{ activity_data|tojson|safe }}');
+    
+    // Timeline Chart
+    const timelineData = {
+        x: activityData.dates,
+        y: activityData.counts,
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: {
+            color: '#4e73df',
+            width: 2
+        },
+        marker: {
+            color: '#4e73df',
+            size: 6
+        }
+    };
+    
+    const timelineLayout = {
+        margin: { t: 30, b: 80, l: 50, r: 30 },
+        xaxis: {
+            title: 'Date',
+            tickangle: -45,
+            tickformat: '%Y-%m-%d',
+            automargin: true
+        },
+        yaxis: {
+            title: 'Number of Activities',
+            automargin: true
+        },
+        height: 400
+    };
+    
+    Plotly.newPlot('timelineChart', [timelineData], timelineLayout);
+    
+    // Activity Distribution Chart
+    const activityDistData = {
+        values: activityData.type_counts,
+        labels: activityData.type_labels,
+        type: 'pie',
+        hole: 0.4,
+        marker: {
+            colors: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+        }
+    };
+    
+    const activityDistLayout = {
+        margin: { t: 30, b: 30, l: 30, r: 30 },
+        showlegend: true,
+        height: 300
+    };
+    
+    Plotly.newPlot('activityDistChart', [activityDistData], activityDistLayout);
+    
+    // Time of Day Chart
+    const timeOfDayData = {
+        x: activityData.hours,
+        y: activityData.hour_counts,
+        type: 'bar',
+        marker: {
+            color: '#4e73df'
+        }
+    };
+    
+    const timeOfDayLayout = {
+        margin: { t: 30, b: 50, l: 50, r: 30 },
+        xaxis: {
+            title: 'Hour of Day',
+            tickmode: 'linear',
+            tick0: 0,
+            dtick: 2
+        },
+        yaxis: {
+            title: 'Number of Activities'
+        },
+        height: 300
+    };
+    
+    Plotly.newPlot('timeOfDayChart', [timeOfDayData], timeOfDayLayout);
+    
+    // Update charts based on date range
+    function updateCharts() {
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        const selectedUser = document.getElementById('userSearch').value;
+        
+        window.location.href = `/admin/user_activity?start_date=${startDate}&end_date=${endDate}&username=${selectedUser}`;
+    }
+    
+    // Update user activity details
+    function updateUserActivity() {
+        const selectedUser = document.getElementById('userSearch').value;
+        const userDetailsCard = document.getElementById('userDetailsCard');
+        
+        if (selectedUser) {
+            fetch(`/admin/user_activity/details/${encodeURIComponent(selectedUser)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('User not found');
+                        userDetailsCard.style.display = 'none';
+                    } else {
+                        document.getElementById('enrolledCourses').textContent = data.enrolled_courses;
+                        document.getElementById('likedCourses').textContent = data.liked_courses;
+                        document.getElementById('lastLogin').textContent = data.last_login;
+                        document.getElementById('timeSpent').textContent = data.time_spent;
+                        userDetailsCard.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching user details');
+                });
+        } else {
+            userDetailsCard.style.display = 'none';
+        }
+        
+        updateCharts();
+    }
+    
+    // Add event listener for Enter key
+    document.getElementById('userSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            updateUserActivity();
+        }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        Plotly.Plots.resize('timelineChart');
+        Plotly.Plots.resize('activityDistChart');
+        Plotly.Plots.resize('timeOfDayChart');
+    });
+</script>
+{% endblock %} 

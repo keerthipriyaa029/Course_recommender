@@ -1,0 +1,708 @@
+{% extends "base.html" %}
+
+{% block title %}CourseBot - Your AI Learning Assistant{% endblock %}
+
+{% block content %}
+<div style="margin: 0; padding: 0;">
+<div class="chatbot-container">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h3>Chats</h3>
+        </div>
+        <button class="new-chat-btn" onclick="startNewChat()">
+            <i class="fa-solid fa-plus"></i> New Chat
+        </button>
+        <div class="chat-history" id="chatHistory">
+            <!-- Chat history will be populated dynamically -->
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <h2>CourseBot - Your AI Learning Assistant</h2>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be populated here -->
+            <div class="bot-message">
+                <div class="bot-icon">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    Hello! How can I assist you today?
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <form id="chatForm" onsubmit="sendMessage(event)">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="userInput" 
+                        placeholder="Ask about courses or learning paths..." 
+                        rows="1"
+                        onkeydown="handleKeyPress(event)"></textarea>
+                    <button type="submit">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- CSS Styles -->
+<style>
+.chatbot-container {
+    display: flex;
+    height: calc(100vh - var(--navbar-height));
+    background-color: #1a1a1a;
+    color: #ffffff;
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+}
+
+/* Add CSS variable for navbar height */
+:root {
+    --navbar-height: 56px;
+}
+
+/* Ensure the content block takes full width */
+.chat-sidebar {
+    width: 260px;
+    background-color: #202123;
+    border-right: 1px solid #4a4a4a;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.sidebar-header {
+    padding: 10px;
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.new-chat-btn {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #343541;
+    border: 1px solid #565869;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.new-chat-btn:hover {
+    background-color: #40414f;
+}
+
+.chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.chat-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #343541;
+}
+
+.chat-header {
+    padding: 15px;
+    border-bottom: 1px solid #4a4a4a;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.back-btn {
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.back-btn:hover {
+    color: #cccccc;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.user-message, .bot-message {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.user-message {
+    background-color: #40414f;
+}
+
+.bot-message {
+    background-color: #444654;
+}
+
+.bot-icon, .user-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.bot-icon {
+    background-color: #10a37f;
+}
+
+.user-icon {
+    background-color: #5436da;
+}
+
+.message-content {
+    flex-grow: 1;
+    line-height: 1.5;
+}
+
+.chat-input-container {
+    padding: 20px;
+    background-color: #343541;
+    border-top: 1px solid #4a4a4a;
+}
+
+.input-wrapper {
+    display: flex;
+    gap: 10px;
+    background-color: #40414f;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+textarea {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    resize: none;
+    padding: 8px;
+    font-size: 16px;
+}
+
+textarea:focus {
+    outline: none;
+}
+
+.input-wrapper button {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+.input-wrapper button:hover {
+    color: #10a37f;
+}
+
+/* Course recommendation card styles */
+.course-card {
+    background-color: #40414f;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+    border: 1px solid #565869;
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.course-title {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.course-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.course-info {
+    flex-grow: 1;
+}
+
+.course-platform, .course-duration {
+    color: #a0a0a0;
+    font-size: 0.9em;
+}
+
+.course-link {
+    color: #10a37f;
+    text-decoration: none;
+}
+
+.course-link:hover {
+    text-decoration: underline;
+}
+
+.interaction-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.interaction-icon {
+    background-color: white;
+    color: #343541;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.interaction-icon:hover {
+    transform: scale(1.1);
+}
+
+.interaction-icon.active {
+    background-color: #10a37f;
+    color: white;
+}
+
+/* Loading animation */
+.typing-indicator {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #a0a0a0;
+    border-radius: 50%;
+    animation: typing 1s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+</style>
+
+<!-- JavaScript for Chat Functionality -->
+<script>
+let currentChatId = null;
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage(event);
+    }
+}
+
+// Load chat history when page loads
+async function loadChatHistory() {
+    try {
+        const response = await fetch('/chatbot/history');
+        const chats = await response.json();
+        
+        const historyDiv = document.getElementById('chatHistory');
+        historyDiv.innerHTML = '';
+        
+        chats.forEach(chat => {
+            addChatToHistory(chat.chat_id, chat.title, false);
+        });
+        
+        // If there are no chats, start a new one
+        if (chats.length === 0) {
+            startNewChat();
+        } else {
+            // Load the most recent chat
+            loadChat(chats[0].chat_id);
+        }
+    } catch (error) {
+        console.error('Error loading chat history:', error);
+        startNewChat();
+    }
+}
+
+async function loadChat(chatId) {
+    try {
+        const response = await fetch(`/chatbot/messages/${chatId}`);
+        const messages = await response.json();
+        
+        // Clear current chat
+        document.getElementById('chatMessages').innerHTML = '';
+        currentChatId = chatId;
+        
+        // Add all messages
+        messages.forEach(msg => {
+            if (msg.recommended_courses && msg.recommended_courses.length > 0) {
+                let content = msg.message;
+                content += '<div class="course-recommendations">';
+                msg.recommended_courses.forEach(course => {
+                    content += createCourseCard(course);
+                });
+                content += '</div>';
+                addMessage(content, msg.is_user);
+            } else {
+                addMessage(msg.message, msg.is_user);
+            }
+        });
+    } catch (error) {
+        console.error('Error loading chat:', error);
+    }
+}
+
+async function startNewChat() {
+    // Clear chat messages
+    document.getElementById('chatMessages').innerHTML = `
+        <div class="bot-message">
+            <div class="bot-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="message-content">
+                Hello! How can I assist you today?
+            </div>
+        </div>
+    `;
+    
+    // Generate new chat ID
+    currentChatId = Date.now().toString();
+    
+    try {
+        // Save new chat session
+        await fetch('/chatbot/history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: currentChatId,
+                title: 'New Chat'
+            })
+        });
+        
+        // Add to chat history
+        addChatToHistory(currentChatId, 'New Chat', true);
+    } catch (error) {
+        console.error('Error creating new chat:', error);
+    }
+}
+
+function addChatToHistory(chatId, title, isNew = false) {
+    const historyDiv = document.getElementById('chatHistory');
+    const chatElement = document.createElement('div');
+    chatElement.className = 'chat-history-item';
+    chatElement.innerHTML = `
+        <span onclick="loadChat('${chatId}')" style="cursor: pointer;">${title}</span>
+        <button onclick="deleteChat('${chatId}')" class="delete-chat">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    `;
+    
+    if (isNew) {
+        historyDiv.prepend(chatElement);
+    } else {
+        historyDiv.appendChild(chatElement);
+    }
+}
+
+async function deleteChat(chatId) {
+    if (!confirm('Are you sure you want to delete this chat?')) return;
+    
+    try {
+        await fetch(`/chatbot/history/${chatId}`, {
+            method: 'DELETE'
+        });
+        
+        // Remove from UI
+        const chatElements = document.querySelectorAll('.chat-history-item');
+        chatElements.forEach(element => {
+            if (element.querySelector('button').getAttribute('onclick').includes(chatId)) {
+                element.remove();
+            }
+        });
+        
+        // If current chat is deleted, start new chat
+        if (chatId === currentChatId) {
+            startNewChat();
+        }
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+    }
+}
+
+async function addMessage(message, isUser = false) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = isUser ? 'user-message' : 'bot-message';
+    
+    messageDiv.innerHTML = `
+        <div class="${isUser ? 'user-icon' : 'bot-icon'}">
+            <i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+        </div>
+        <div class="message-content">
+            ${message}
+        </div>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    // Save message to database
+    try {
+        await fetch('/chatbot/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: currentChatId,
+                message: message,
+                is_user: isUser,
+                recommended_courses: [] // Will be populated for bot responses with courses
+            })
+        });
+    } catch (error) {
+        console.error('Error saving message:', error);
+    }
+}
+
+function createCourseCard(course) {
+    // Ensure course_id is available
+    const courseId = course.course_id || course['Course ID'];
+    if (!courseId) {
+        console.error('Course ID is missing:', course);
+        return '';
+    }
+
+    return `
+        <div class="course-card" data-course-id="${courseId}">
+            <div class="course-header">
+                <div class="course-title">${course.name || course['Course Name']}</div>
+            </div>
+            <div class="course-details">
+                <div class="course-info">
+                    <div class="course-platform">Platform: ${course.platform}</div>
+                    <div class="course-duration">Duration: ${course.duration || course['Duration']}</div>
+                    <a href="${course.link || course['Course Link']}" target="_blank" class="course-link">View Course</a>
+                </div>
+                <div class="interaction-buttons">
+                    <div class="interaction-icon" onclick="handleInteraction('${courseId}', 'like', this)" title="Like">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div class="interaction-icon" onclick="handleInteraction('${courseId}', 'enroll', this)" title="Enroll">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="interaction-icon" onclick="handleInteraction('${courseId}', 'completed', this)" title="Mark as Completed">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function handleInteraction(courseId, action, button) {
+    try {
+        // Get course details from the card
+        const card = button.closest('.course-card');
+        const courseTitle = card.querySelector('.course-title').textContent;
+        const platform = card.querySelector('.course-platform').textContent.replace('Platform: ', '');
+        const courseLink = card.querySelector('.course-link').href;
+
+        const response = await fetch('/api/interactions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                course_id: courseId,
+                course_name: courseTitle,
+                platform: platform,
+                course_link: courseLink,
+                interaction_type: action
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Toggle active state
+            button.classList.toggle('active');
+            
+            // Show feedback
+            const actionMap = {
+                'like': 'Liked',
+                'enroll': 'Enrolled in',
+                'completed': 'Completed'
+            };
+            
+            showToast(`${actionMap[action]} course successfully!`);
+        } else {
+            showToast('Failed to update interaction. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred. Please try again.');
+    }
+}
+
+function showToast(message) {
+    // Implementation of toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+async function sendMessage(event) {
+    event.preventDefault();
+    
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Clear input
+    input.value = '';
+    
+    // Add user message to chat
+    await addMessage(message, true);
+    
+    // Show typing indicator
+    addTypingIndicator();
+    
+    try {
+        const response = await fetch('/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                chat_id: currentChatId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Remove typing indicator
+        removeTypingIndicator();
+        
+        if (data.status === 'error') {
+            console.error('Error from backend:', data.error);
+            await addMessage(data.response);
+            return;
+        }
+        
+        // Add bot response
+        let botResponse = data.response;
+        
+        // If there are course recommendations, add them
+        if (data.recommended_courses && data.recommended_courses.length > 0) {
+            botResponse += '<div class="course-recommendations">';
+            data.recommended_courses.forEach(course => {
+                botResponse += createCourseCard(course);
+            });
+            botResponse += '</div>';
+            
+            // Save message with course recommendations
+            await fetch('/chatbot/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: currentChatId,
+                    message: data.response,
+                    is_user: false,
+                    recommended_courses: data.recommended_courses
+                })
+            });
+        }
+        
+        await addMessage(botResponse);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        removeTypingIndicator();
+        await addMessage('I apologize, but I encountered an error. Please try again.');
+    }
+}
+
+function addTypingIndicator() {
+    const messagesDiv = document.getElementById('chatMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'bot-message typing-indicator';
+    typingDiv.id = 'typingIndicator';
+    
+    typingDiv.innerHTML = `
+        <div class="bot-icon">
+            <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    `;
+    
+    messagesDiv.appendChild(typingDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+// Initialize chat
+document.addEventListener('DOMContentLoaded', () => {
+    loadChatHistory();
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,241 @@
+/* Global Styles */
+body {
+    background-color: #f8f9fc;
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    padding-bottom: 2rem;
+}
+
+/* Navbar Styles */
+.navbar {
+    padding: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-link {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+}
+
+/* Card and Container Styles */
+.card, .stats-container, .chart-container, .table-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 2rem;
+}
+
+/* Table Styles */
+.table {
+    margin-bottom: 1rem;
+    width: 100%;
+    min-width: 800px; /* Ensures table doesn't get too squeezed */
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+    border-top: none;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Chart Title and Interpretation */
+.chart-title {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e3e6f0;
+}
+
+.interpretation {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    color: #6c757d;
+    border-left: 4px solid #4e73df;
+}
+
+/* Grid System Adjustments */
+.row {
+    margin-bottom: 2rem;
+}
+
+.col-lg-6, .col-md-6, .col-12 {
+    margin-bottom: 2rem;
+}
+
+/* Stat Cards */
+.stat-card {
+    height: 100%;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
+    margin-bottom: 0;
+}
+
+.stat-card .number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .chart-container {
+        min-height: 300px;
+    }
+    
+    .stat-card {
+        min-height: 180px;
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        min-height: 250px;
+    }
+    
+    .table td {
+        max-width: 150px;
+    }
+    
+    .stat-card {
+        min-height: 160px;
+    }
+}
+
+/* Plotly Chart Adjustments */
+.js-plotly-plot {
+    width: 100% !important;
+}
+
+.plotly-graph-div {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 300px;
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.alert-error {
+    background-color: #e74a3b;
+    color: white;
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #e3e6f0;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+/* Progress Bar Styles */
+.progress {
+    background-color: #eaecf4;
+    border-radius: 10px;
+    height: 20px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+} 

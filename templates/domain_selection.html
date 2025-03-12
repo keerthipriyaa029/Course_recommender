@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}CourseHub - Choose Your Learning Path{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">Choose Your Learning Path</h1>
+                <p class="lead subtitle">Select a domain that interests you the most</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('domain_selection') }}">
+                <div class="row g-4 domain-container">
+                    <!-- Data Science -->
+                    <div class="col">
+                        <div class="domain-card card">
+                            <input type="radio" class="domain-radio" name="domain" value="Data Science" id="data-science" required>
+                            <label class="card-body text-center" for="data-science">
+                                <div class="domain-icon">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <h3 class="card-title">Data Science</h3>
+                                <p class="card-text">Learn to analyze data, create visualizations, and build predictive models.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Data Engineering -->
+                    <div class="col">
+                        <div class="domain-card card">
+                            <input type="radio" class="domain-radio" name="domain" value="Data Engineering" id="data-engineering">
+                            <label class="card-body text-center" for="data-engineering">
+                                <div class="domain-icon">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <h3 class="card-title">Data Engineering</h3>
+                                <p class="card-text">Master data pipelines, ETL processes, and data infrastructure.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Machine Learning -->
+                    <div class="col">
+                        <div class="domain-card card">
+                            <input type="radio" class="domain-radio" name="domain" value="Machine Learning" id="machine-learning">
+                            <label class="card-body text-center" for="machine-learning">
+                                <div class="domain-icon">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <h3 class="card-title">Machine Learning</h3>
+                                <p class="card-text">Develop AI models and understand advanced ML algorithms.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Artificial Intelligence -->
+                    <div class="col">
+                        <div class="domain-card card">
+                            <input type="radio" class="domain-radio" name="domain" value="Artificial Intelligence" id="artificial-intelligence">
+                            <label class="card-body text-center" for="artificial-intelligence">
+                                <div class="domain-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <h3 class="card-title">Artificial Intelligence</h3>
+                                <p class="card-text">Explore cutting-edge AI technologies and applications.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- No Preference -->
+                    <div class="col">
+                        <div class="domain-card card">
+                            <input type="radio" class="domain-radio" name="domain" value="No Preference" id="no-preference">
+                            <label class="card-body text-center" for="no-preference">
+                                <div class="domain-icon">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                                <h3 class="card-title">No Preference</h3>
+                                <p class="card-text">Explore multiple domains and create your own learning path.</p>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">Continue to Skills</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap');
+
+.display-4 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #1a237e;
+    font-size: 2.8rem;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-family: 'Poppins', sans-serif;
+    color: #1a237e;
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin-bottom: 2rem;
+    letter-spacing: -0.2px;
+}
+
+.domain-container {
+    overflow-x: auto;
+    padding: 1rem 0;
+    margin: 0 -0.5rem;
+}
+
+.domain-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 12px;
+    background: white;
+    min-width: 220px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.domain-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.domain-radio {
+    position: absolute;
+    opacity: 0;
+}
+
+.domain-radio:checked + .card-body {
+    background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+    color: white;
+}
+
+.domain-radio:checked + .card-body .domain-icon,
+.domain-radio:checked + .card-body .card-title,
+.domain-radio:checked + .card-body .card-text {
+    color: white;
+}
+
+.domain-icon {
+    font-size: 2.5rem;
+    color: #0061f2;
+    margin: 1rem 0;
+    transition: all 0.3s ease;
+}
+
+.card-body {
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1a237e;
+    transition: all 0.3s ease;
+}
+
+.card-text {
+    font-size: 0.9rem;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 1200px) {
+    .domain-container {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+    
+    .col {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 0 0.5rem;
+    }
+}
+</style>
+{% endblock %} 

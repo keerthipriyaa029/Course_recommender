@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Course Recommendation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .interpretation {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">User Management</h1>
+    
+    <div class="row">
+        <!-- Domain Distribution Chart -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-pie me-2"></i>Domain Distribution
+                </h5>
+                <div id="domainChart" class="plotly-chart"></div>
+                <div class="interpretation">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This chart shows the distribution of users across different domains.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Skills Distribution Chart -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-bar me-2"></i>Top Skills Distribution
+                </h5>
+                <div id="skillsChart" class="plotly-chart"></div>
+                <div class="interpretation">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This chart displays the most common skills among users.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User List Table -->
+    <div class="table-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="chart-title mb-0">
+                <i class="fas fa-users me-2"></i>User Details
+            </h5>
+            <div class="d-flex gap-2">
+                <div class="input-group" style="width: 300px;">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="userSearch" 
+                           placeholder="Search users..." onkeyup="filterTable()">
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover" id="userTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Domain</th>
+                        <th>Skills</th>
+                        <th>Completed</th>
+                        <th>Enrolled</th>
+                        <th>Liked</th>
+                        <th>Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.domain }}</td>
+                        <td>{{ user.skills }}</td>
+                        <td>{{ user.completed }}</td>
+                        <td>{{ user.enrolled }}</td>
+                        <td>{{ user.liked }}</td>
+                        <td>{{ user.total_activity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="interpretation">
+            <i class="fas fa-info-circle me-2"></i>
+            Use the search box to filter users by any field.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const chartData = JSON.parse('{{ chart_data|tojson|safe }}');
+
+    // Domain Distribution Chart
+    const domainData = {
+        values: chartData.domain_values,
+        labels: chartData.domain_labels,
+        type: 'pie',
+        hole: 0.4,
+        marker: {
+            colors: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796']
+        }
+    };
+    
+    const domainLayout = {
+        margin: { t: 30, b: 50, l: 30, r: 30 },
+        showlegend: true,
+        legend: { orientation: 'h', y: -0.2 },
+        height: 400
+    };
+    
+    Plotly.newPlot('domainChart', [domainData], domainLayout);
+    
+    // Skills Distribution Chart
+    const skillsData = {
+        x: chartData.skills_x,
+        y: chartData.skills_y,
+        type: 'bar',
+        marker: {
+            color: '#4e73df'
+        }
+    };
+    
+    const skillsLayout = {
+        margin: { t: 30, b: 100, l: 50, r: 30 },
+        xaxis: {
+            tickangle: -45
+        },
+        yaxis: {
+            title: 'Number of Users'
+        },
+        height: 400
+    };
+    
+    Plotly.newPlot('skillsChart', [skillsData], skillsLayout);
+    
+    // Table search functionality
+    function filterTable() {
+        const input = document.getElementById('userSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('userTable');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            let found = false;
+            
+            for (let j = 0; j < cells.length; j++) {
+                const cell = cells[j];
+                if (cell.textContent.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            row.style.display = found ? '' : 'none';
+        }
+    }
+    
+    // Handle window resize for charts
+    window.addEventListener('resize', function() {
+        Plotly.Plots.resize('domainChart');
+        Plotly.Plots.resize('skillsChart');
+    });
+</script>
+{% endblock %} 
